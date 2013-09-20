@@ -30,6 +30,7 @@ package org.zaproxy.zap.extension.birtreports;
 import edu.stanford.ejalbert.BrowserLauncher;
 
 import java.awt.Desktop;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.awt.image.BufferedImage;
@@ -71,6 +72,7 @@ import org.zaproxy.zap.view.ScanPanel;
 import org.eclipse.birt.core.exception.BirtException;
 import org.eclipse.birt.core.framework.Platform;
 import org.eclipse.birt.report.engine.api.EngineConfig;
+import org.eclipse.birt.report.engine.api.EngineConstants;
 import org.eclipse.birt.report.engine.api.EngineException;
 import org.eclipse.birt.report.engine.api.IReportRunnable;
 import org.eclipse.birt.report.engine.api.IRunAndRenderTask;
@@ -479,10 +481,107 @@ public class ReportLastScan {
     		 logger.error(e.getMessage(), e);
              //view.showWarningDialog(Constant.messages.getString("report.unexpected.warning"));
     		
-    		 }
-
-    	
+    		 }   	
     }
+    
+    public void executeBirtScriptReport(ViewDelegate view,String reportDesign, String title)
+ 	{
+ 		try {
+ 			
+ 			AlertReport report = new AlertReport();
+ 			report.getAlertsReport();
+ 			
+ 			//user chooses where to save PDF report
+ 			JFileChooser chooser = new JFileChooser(Model.getSingleton().getOptionsParam().getUserDirectory());
+             chooser.setFileFilter(new FileFilter() {
+
+                 @Override
+                 public boolean accept(File file) {
+                     if (file.isDirectory()) {
+                         return true;
+                     } else if (file.isFile()
+                             && file.getName().toLowerCase().endsWith(".pdf")) {
+                         return true;
+                     }
+                     return false;
+                 }
+
+                 @Override
+                 public String getDescription() {
+                     return Constant.messages.getString("file.format.pdf");
+                     //TODO: define message on package Messages.Properties own file
+                 	//return messages.getString("file.format.pdf");
+                 }
+             });
+
+             File file = null;
+             int rc = chooser.showSaveDialog(View.getSingleton().getMainFrame());
+             if (rc == JFileChooser.APPROVE_OPTION) {
+                 file = chooser.getSelectedFile();
+             }
+                 if (file != null) {
+                     Model.getSingleton().getOptionsParam().setUserDirectory(chooser.getCurrentDirectory());
+                     String fileNameLc = file.getAbsolutePath().toLowerCase();
+                     // if a user forgets to specify .pdf at the end of the filename 
+                     // then append it with the file name
+                     if (!fileNameLc.endsWith(".pdf")) {
+                         file = new File(file.getAbsolutePath() + ".pdf"); 
+                         fileNameLc = file.getAbsolutePath();
+                     } // select the file and close the Save dialog box
+                         
+                         //BIRT engine code
+                         EngineConfig config = new EngineConfig();
+                         // set the resource path to the folder where logo image is placed 
+                         config.setResourcePath(fileNameLogo);  
+             			Platform.startup(config);
+             			
+             			ReportEngine engine = new ReportEngine(config);
+             		
+             			IReportRunnable reportRunnable = engine.openReportDesign(reportDesign);
+             			IRunAndRenderTask runAndRender = engine.createRunAndRenderTask(reportRunnable);
+             			
+             			//Get Current Report Title
+             			System.out.println(reportRunnable.getDesignHandle().getProperty("title"));  // or IReportRunnable.TITLE
+             			
+             			//Set New Report Title
+             			reportRunnable.getDesignHandle().setProperty("title", title);
+             			
+             			//Scripted source related code 
+             			HashMap contextMap = new HashMap();  
+             			List<Alert> sortedList = report.sortAndGroupAlerts(this.totalCount);
+             			contextMap.put("Alerts", sortedList);
+             			runAndRender.setAppContext(contextMap);  
+             			
+             			PDFRenderOption option = new PDFRenderOption();
+                         option.setOutputFileName(fileNameLc); // takes old file name but now I did some modification
+                        
+             			option.setOutputFormat("PDF");
+             			runAndRender.setRenderOption(option);            			
+             			runAndRender.run();            			
+             			runAndRender.close();
+             			// open the PDF
+             			boolean isOpen = openPDF(new File(fileNameLc));
+             			if(!isOpen)
+             				view.showWarningDialog("Error: Unable to open PDF from location: " + fileNameLc);
+             			//engine.destroy();
+             			//Platform.shutdown();
+                     
+                 //}
+ //
+                			
+             }
+ 				}catch (EngineException e) {
+ 					e.printStackTrace();
+ 					} catch (BirtException e) {
+ 						view.showWarningDialog("Error with BIRT API: " + e.toString());
+ 						e.printStackTrace();
+ 						}
+ 		
+ 		//
+ 	
+ 			}
+     //end
+    
     public void executeBirtPdfReport(ViewDelegate view,String reportDesign, String title)
 	{
 		try {
@@ -541,6 +640,7 @@ public class ReportLastScan {
             			
             			//Set New Report Title
             			reportRunnable.getDesignHandle().setProperty("title", title);
+            			//reportRunnable.getDesignHandle()
             			
             			PDFRenderOption option = new PDFRenderOption();
                         option.setOutputFileName(fileNameLc); // takes old file name but now I did some modification
