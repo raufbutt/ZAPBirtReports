@@ -9,7 +9,7 @@
                 <zapaddonid/>                   <!-- id (and optionally version) of other addon this one depends on - can be multiple of these -->
         </dependson>
         <extensions>                            <!-- Optional, to be used if this addon includes extensions -->
-                <extension/>                    <!-- Full class name of the extension - can be multiple of these -->
+                <extension>org.zaproxy.zap.extension.birtreports</extension>                    <!-- Full class name of the extension - can be multiple of these -->
         </extensions>
         <ascanrules>                            <!-- Optional, to be used if this addon includes active scan rules -->
                 <ascanrule/>                    <!-- Full class name of the active scan rule - can be multiple of these -->

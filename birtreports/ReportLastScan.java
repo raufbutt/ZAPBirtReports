@@ -254,7 +254,6 @@ public class ReportLastScan {
         sb.append(sbXML);
         sb.append("</OWASPZAPReport>");
         // To call another function to filter xml records
-        //sbXML = filterXML(sb);
          
         File report = ReportGenerator.stringToHtml(sb.toString(), xslFile, fileName);
 
@@ -265,93 +264,7 @@ public class ReportLastScan {
     {
     	return totalCount = count;
     }
-    
-    private StringBuilder filterXML(StringBuilder xmlsb) throws JDOMException, IOException
-    {
-    	// convert String into InputStream
-    	
-    	StringBuilder sb = new StringBuilder (500);
-    	
-    	InputStream is = new ByteArrayInputStream(xmlsb.toString().getBytes());
-    	// load in xml file and get a handle on the root element
-        SAXBuilder builder = new SAXBuilder();
-        org.jdom.Document doc = builder.build(is);
-        Element rootElement = doc.getRootElement();
         
-        // filter to get all immediate element nodes called 'colour'
-        // for a specific, the null represent the default namespace
-        Filter elementFilter = new ElementFilter( "alerts", null );
-    	
-        // gets all immediate nodes under the rootElement
-        List allNodes = (List) rootElement.getContent();
-
-        // gets all element nodes under the rootElement
-        List elements = (List) rootElement.getContent( elementFilter );
-     // cycle through all immediate elements under the rootElement
-        for( Iterator it = elements.iterator(); it.hasNext(); ) {
-          // note that this is a downcast because we
-          // have used the element filter.  This would
-          // not be the case for a getContents() on the element
-          Element anElement = (Element) it.next();
-          System.out.println( anElement );
-        }
-    	
-    	/*
-        String xmlString = xmlsb.toString();
-        try {
-        DocumentBuilderFactory builderFactory =
-                DocumentBuilderFactory.newInstance();
-        builderFactory.setNamespaceAware(false); // never forget this!
-        DocumentBuilder builder = builderFactory.newDocumentBuilder();
-        
-        Document xmlDocument = builder.parse(new ByteArrayInputStream(xmlString.getBytes()));
-       // Document xmlDocument = builder.parse(
-                //new FileInputStream("reportdesignfiles/xmloutput/xmloutputzap.xml"));
- 
-        // get the first element
-        Element element = xmlDocument.getElementById("alertitem");
-
-        // get all child nodes
-        NodeList nodes = element.getChildNodes();
-
-        // print the text content of each child
-        for (int i = 0; i < nodes.getLength(); i++) {
-           System.out.println("" + nodes.item(i).getTextContent());
-        }
-        /*
-        XPath xPath =  XPathFactory.newInstance().newXPath();
-        String expression = "alertitem";
-        
-      //read a string value
-      
-	  //String email = xPath.compile(expression).evaluate(xmlDocument);       
-      //read an xml node using xpath
-      Node node = (Node) xPath.compile(expression).evaluate(xmlDocument, XPathConstants.NODE);
- //     if(node!=null)
- //     System.out.println("Node: " + node.toString());
-      
-      //read a nodelist using xpath
-      NodeList nodeList = (NodeList) xPath.compile(expression).evaluate(xmlDocument, XPathConstants.NODESET);
-      System.out.println("Node List: " + nodeList.toString());
-      for (int i = 0; i < nodeList.getLength(); i++) {
-    	    System.out.println(nodeList.item(i).getFirstChild().getNodeValue()); 
-    	}*/
-        /*
-        } catch (SAXException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        catch (ParserConfigurationException e) {
-            e.printStackTrace();
-        } 
-        /*catch (XPathExpressionException e) {
-    		// TODO Auto-generated catch block
-    		e.printStackTrace();
-    	}*/
-      return sb;
-    }
-    
     private StringBuilder siteXML() {
         StringBuilder report = new StringBuilder();
         SiteMap siteMap = Model.getSingleton().getSession().getSiteTree();
@@ -383,8 +296,8 @@ public class ReportLastScan {
         for(int i=0; i<extensionCount; i++) {
             Extension extension = loader.getExtension(i);
             if(extension instanceof XmlReporterExtension) {
-                extensionXml.append(((XmlReporterExtension)extension).getXml(site));
-                //extensionXml.append(((XmlReporterExtension)extension).getXmlgroup(site, totalCount));
+                //extensionXml.append(((XmlReporterExtension)extension).getXml(site));
+                extensionXml.append(((XmlReporterExtension)extension).getXmlgroup(site, totalCount));
             }
         }
         return extensionXml;

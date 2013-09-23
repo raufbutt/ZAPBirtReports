@@ -30,7 +30,7 @@ public class AlertReport implements IAlertReport{
 	    {
 			AlertReport report = new AlertReport();
 			this.alerts = site.getAlerts();
-			this.Size = alerts.size();
+			//this.Size = alerts.size();
 			return report;
 		}
 	    
